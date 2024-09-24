@@ -40,12 +40,12 @@ export default definePlugin({
                 console.log("[autoStatus] Old: " + oldChannelId);
                 console.log("[autoStatus] Prev: " + prevState?.channelId);
 
-                if (userId === myId && channelId !== prevState?.channelId) {
+                if (userId === myId) {
                     const status = PresenceStore.getStatus(UserStore.getCurrentUser().id);
-                    if (channelId && !prevState?.channelId) {
+                    if (channelId && typeof oldChannelId === "undefined") {
                         // joining a channel
                         updateAsync("dnd");
-                    } else {
+                    } else if (!channelId) {
                         // leaving a channel
                         updateAsync("online");
                     }

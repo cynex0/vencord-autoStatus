@@ -5,9 +5,13 @@
  */
 
 import definePlugin from "@utils/types";
+import { findByCodeLazy } from "@webpack";
+
+const updateAsync = findByCodeLazy("updateAsync", "status"); // function that updates status
+// statuses : online, idle, dnd, invisible
 
 export default definePlugin({
     name: "autoStatus",
     description: "Change status on different events",
-    authors: [{ name: "cynex_", id: 1234567890n }],
+    authors: [{ name: "cynex_", id: 224173920968900608n }],
 });

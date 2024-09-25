@@ -23,20 +23,25 @@ const updateAsync = findByCodeLazy("updateAsync", "status"); // function that up
 // statuses : online, idle, dnd, invisible
 
 var settings = definePluginSettings({
-    isEnabledInCall: {
-        description: "Change status when joining a call",
-        type: OptionType.BOOLEAN,
-        default: true
-    },
-    statusInCall: {
-        description: "Status to set while in a call",
+    statusToset: {
+        description: "Status to set when one of the following happens:",
         type: OptionType.SELECT,
         options: [
             { label: "Do not disturb", value: "dnd", default: true },
             { label: "Idle", value: "idle" },
             { label: "Invisible", value: "invisible" },
         ],
-        disabled: () => !settings.store.isEnabledInCall
+        disabled: () => !settings.store.privateCall
+    },
+    privateCall: {
+        description: "Change status when joining a call",
+        type: OptionType.BOOLEAN,
+        default: true
+    },
+    voiceChannel: {
+        description: "Change status when joining a voice channel in a server",
+        type: OptionType.BOOLEAN,
+        default: true
     }
 });
 
@@ -50,30 +55,34 @@ export default definePlugin({
     settings,
     flux: {
         VOICE_STATE_UPDATES({ voiceStates }: { voiceStates: VoiceState[]; }) {
-            if (!settings.store.isEnabledInCall) return;
-
             const myGuildId = SelectedGuildStore.getGuildId();
             const myChanId = SelectedChannelStore.getVoiceChannelId();
             const myId = UserStore.getCurrentUser().id;
 
             for (const state of voiceStates) {
                 const { userId, channelId, oldChannelId } = state;
-                console.log("[autoStatus] Joining: " + channelId);
+                console.log("[autoStatus] Joining: " + channelId + " " + myGuildId);
                 console.log("[autoStatus] Old: " + oldChannelId);
                 console.log("[autoStatus] Prev: " + prevState?.channelId);
 
                 if (userId === myId) {
-                    const status = PresenceStore.getStatus(UserStore.getCurrentUser().id);
+                    const status = PresenceStore.getStatus(UserStore.getCurrentUser().id); // TODO: save previous status
                     if (channelId && typeof oldChannelId === "undefined") {
-                        // joining a channel
-                        updateAsync(settings.store.statusInCall);
+                        if (myGuildId === null && settings.store.privateCall) {
+                            // joining a private call
+                            updateAsync(settings.store.statusToset);
+                        }
+                        else if (settings.store.voiceChannel) {
+                            // joining a voice channel
+                            updateAsync(settings.store.statusToset);
+                        }
                     } else if (!channelId) {
-                        // leaving a channel
-                        updateAsync("online");
+                        // leaving a channel/call
+                        updateAsync("online"); // TODO: use previous status
                     }
-                }
 
-                prevState = state;
+                    prevState = state;
+                }
             }
         }
     }

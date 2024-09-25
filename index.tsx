@@ -24,14 +24,13 @@ const updateAsync = findByCodeLazy("updateAsync", "status"); // function that up
 
 var settings = definePluginSettings({
     statusToset: {
-        description: "Status to set when one of the following happens:",
+        description: "Status to set when one of the following happens",
         type: OptionType.SELECT,
         options: [
             { label: "Do not disturb", value: "dnd", default: true },
             { label: "Idle", value: "idle" },
             { label: "Invisible", value: "invisible" },
-        ],
-        disabled: () => !settings.store.privateCall
+        ]
     },
     privateCall: {
         description: "Change status when joining a call",

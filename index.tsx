@@ -45,7 +45,18 @@ var settings = definePluginSettings({
 });
 
 var prevState: VoiceState;
-var prevStatus: string;
+var prevStatus = "";
+
+function saveStatus() {
+    prevStatus = PresenceStore.getStatus(UserStore.getCurrentUser().id);
+}
+
+function recallStatus() {
+    const status = PresenceStore.getStatus(UserStore.getCurrentUser().id);
+    if (prevStatus !== "" && prevStatus !== settings.store.statusToset && status === settings.store.statusToset)
+        // only recall the previous status if the user didn't change the status while in a call
+        updateAsync(prevStatus);
+}
 
 export default definePlugin({
     name: "autoStatus",
@@ -65,8 +76,8 @@ export default definePlugin({
                 console.log("[autoStatus] Prev: " + prevState?.channelId);
 
                 if (userId === myId) {
-                    const status = PresenceStore.getStatus(UserStore.getCurrentUser().id); // TODO: save previous status
                     if (channelId && typeof oldChannelId === "undefined") {
+                        saveStatus();
                         if (myGuildId === null && settings.store.privateCall) {
                             // joining a private call
                             updateAsync(settings.store.statusToset);
@@ -77,7 +88,7 @@ export default definePlugin({
                         }
                     } else if (!channelId) {
                         // leaving a channel/call
-                        updateAsync("online"); // TODO: use previous status
+                        recallStatus();
                     }
 
                     prevState = state;
